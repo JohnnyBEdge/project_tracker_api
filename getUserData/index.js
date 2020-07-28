@@ -1,6 +1,7 @@
 'use strict'
 const AWS = require('aws-sdk');
 
+
 AWS.config.update({region: "us-west-1"});
 
 //handler is the fx being exported with index being the exported file
@@ -11,19 +12,35 @@ exports.handler = async (event, context) => {
     //gets rid of needing to go into Dynamo's S value to get id
     const documentClient = new AWS.DynamoDB.DocumentClient({region: "us-west-1"});
 
+    let res = "";
+    let statusCode = 0;
+
+    const {id} = event.pathParameters;
+
     const params = {
         TableName: "Users",
         Key: {
-            id: "12345"
+            id: id
         }
     };
 
     try {
         const data = await documentClient.get(params).promise();
-        console.log(data);
+        res = JSON.stringify(data.Item);
+        statusCode = 200;
     } catch(err) {
-        console.log(err);
+        res =  "Unable to get user data";
+        statusCode = 403;
     };
 
+    const response = {
+        statusCode: statusCode,
+        headers: {
+            "myHeader": "test"
+        },
+        body: res
+    };
+
+    return response;
 
 }
