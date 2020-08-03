@@ -7,16 +7,26 @@ exports.handler = async (event, context) => {
   let responseBody = "";
   let statusCode = 0;
 
+  const { id, productname } = JSON.parse(event.body);
+
   const params = {
-    TableName: "project-tracker-users"
+    TableName: "Products",
+    Key: {
+      id: id
+    },
+    UpdateExpression: "set productname = :n",
+    ExpressionAttributeValues: {
+      ":n": productname
+    },
+    ReturnValues: "UPDATED_NEW"
   };
 
   try {
-    const data = await documentClient.scan(params).promise();
-    responseBody = JSON.stringify(data.Items);
-    statusCode = 200;
+    const data = await documentClient.update(params).promise();
+    responseBody = JSON.stringify(data);
+    statusCode = 204;
   } catch(err) {
-    responseBody = `Unable to get products: ${err}`;
+    responseBody = `Unable to update product: ${err}`;
     statusCode = 403;
   }
 
